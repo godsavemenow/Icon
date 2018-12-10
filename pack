@@ -1,0 +1,22 @@
+package com;
+import java.util.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.util.ArrayList;
+
+
+	public class Pack {
+		private int seq;
+		private byte data[];
+		long sendtime=System.currentTimeMillis();
+		private String origemIP, destinyIP;
+		
+		public Pack(int seq, byte[] mtj, String origemIP, String destinyIP){
+			this.seq = seq;
+			this.data = mtj;
+			this.origemIP=origemIP;
+			this.destinyIP=destinyIP;
+		}
+
+}
