@@ -11,12 +11,14 @@ import java.util.ArrayList;
 		private byte data[];
 		long sendtime=System.currentTimeMillis();
 		private String origemIP, destinyIP;
+		long filesize;
 		
-		public Pack(int seq, byte[] mtj, String origemIP, String destinyIP){
+		public Pack(int seq, byte[] mtj, String origemIP, String destinyIP, long filesize){
 			this.seq = seq;
 			this.data = mtj;
 			this.origemIP=origemIP;
 			this.destinyIP=destinyIP;
+			this.filesize=filesize;
 		}
 
 }
