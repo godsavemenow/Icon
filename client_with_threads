@@ -1,4 +1,5 @@
 package com;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.io.IOException;
@@ -13,147 +14,184 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class sender {
-	public static int size; 
+	public static int size;
 	public static boolean ack[];
 	public static byte[][] datas;
-	public static int []sended;
+	public static boolean[] sended;
+	public static long[] time;
 	public static Pack[] pacotes;
+	public static int janela;
+	public static int porcentagem;
+	public static int filesize;
 	public static void main(String[] args) throws IOException {
 
-		 	new Thread(t1).start();
-	        new Thread(t2).start();
-	        new Thread(t3).start();
-	        
+		Scanner in = new Scanner(System.in);
+		janela = in.nextInt();
+		porcentagem = in.nextInt();
+		byte[] array = Files.readAllBytes(new File("C:\\\\Users\\\\Young Luke\\\\Desktop\\\\prot2.rar").toPath());
+		filesize=array.length;
+		new Thread(t1).start();
+		new Thread(t2).start();
+		new Thread(t3).start();
 
 	}
-	
+
 	private static Runnable t1 = new Runnable() {
-        public void run() {
-            try{
-	DatagramSocket clientSocket = new DatagramSocket();
-	InetAddress IPServer = InetAddress.getByName("localhost");
-	byte[] array = Files.readAllBytes(new File("C:\\Users\\lucas.vinicius\\Desktop\\prot2.zip").toPath());
-	size = array.length/512;
-	ack = new boolean[size/512];
-	sended = new int [size];
-	datas = thedivision(array);
-	int x=0;
-	
-	pacotes = new Pack[size/512];	
-	
-	x=0;
-	ack[0]=true;
-	int janela=size/1024;
-	while(true) {
-		
-	if(x<janela ||ack[x-janela]) {	
-	pacotes[x] = new Pack(x, datas[x],"local","local", size);	
-	byte[] temp=toByteArray(pacotes[x]);
-	DatagramPacket sendPacket = new DatagramPacket(temp, temp.length, IPServer, 5000);
-	long as = System.nanoTime();
-	clientSocket.send(sendPacket);
-	
-	x++;
-	}
-	
-	}
-            } catch (Exception e){}
-            
-        }
-    };
-	
-
-    private static Runnable t2 = new Runnable() {
-        public void run() {
-            try{
-            	int x = 0;
-		while(true) {
+		public void run() {
+			try {
+				DatagramSocket clientSocket = new DatagramSocket();
+				InetAddress IPServer = InetAddress.getByName("localhost");
 			
-		if(System.currentTimeMillis()-pacotes[x].sendtime>2 & !ack[x]) {
-			pacotes[x] = new Pack(x, datas[x],"local","local", size);	
-			byte[] tempo=toByteArray(pacotes[x]);
-			DatagramSocket clientSocket = new DatagramSocket();
-			InetAddress IPServer = InetAddress.getByName("localhost");
-		DatagramPacket sendPacket = new DatagramPacket(tempo, tempo.length, IPServer, 5000);
-		long as = System.nanoTime();
-		clientSocket.send(sendPacket);
-		
-		}else if(ack[x]) {x++;}
+				byte[] array = Files.readAllBytes(new File("C:\\\\Users\\\\Young Luke\\\\Desktop\\\\prot2.rar").toPath());
+				filesize = array.length;
+				
+				size = (array.length / 512) + 1;
+				ack = new boolean[size];
+				sended = new boolean[size];
+				time = new long[size];
+				datas = thedivision(array);
+				int x = 0;
+
+				pacotes = new Pack[size];
+
+				x = 0;
+
+				while (true) {
+					new Thread().sleep(2000);
+					if (x < janela || ack[x - janela]) {
+						pacotes[x] = new Pack(x, datas[x], "local", "local", array.length);
+						time[x]=System.currentTimeMillis();
+						byte[] aux = new byte[512];
+						byte[] temp = new byte[537];
+						int y=0;
+						while(y<512) {
+						aux[y]= datas[x][y];
+						y++;}
+						temp = toByteArray(x,aux);
+						
+						
+						DatagramPacket sendPacket = new DatagramPacket(temp, temp.length, IPServer, 5000);
+						clientSocket.send(sendPacket);
+						sended[x]=true;
+						System.out.println("enviado: " + x);
+						x++;
+					}
+
+				}
+			} catch (Exception e) {
+			}
+
 		}
-	}  catch (Exception e){}
-	 
-    }
-};
-	
+	};
 
-private static Runnable t3 = new Runnable() {
-    public void run() {
-        try{
+	private static Runnable t2 = new Runnable() {
+		public void run() {
+			try {
+				System.out.println(filesize);
+				System.out.println("t2");
+				int z = 0;
+				while (z<(filesize/512)+1) {
+					
+					new Thread().sleep(1000);
+					
+					if (!ack[z]&sended[z]) {
+						
+						pacotes[z] = new Pack(z, datas[z], "local", "local", filesize);
+						time[z]=System.currentTimeMillis();
+						byte[] aux = new byte[512];
+						byte[] temp = new byte[537];
+						int y=0;
+						while(y<512) {
+						aux[y]= datas[z][y];
+						System.out.println(z*512+y +": "+datas[z][y]);
+						y++;}
+						temp = toByteArray(z,aux);
+						DatagramSocket clientSocket = new DatagramSocket();
+						InetAddress IPServer = InetAddress.getByName("localhost");
+					
+						
+						DatagramPacket sendPacket = new DatagramPacket(temp, temp.length, IPServer, 5000);
+						clientSocket.send(sendPacket);
+						System.out.println("reenvio: "+ z);
+					} else if (ack[z]) {
+						z++;
+					}
+				}
+			} catch (Exception e) {
+			}
 
-        	DatagramSocket serverSocket = new DatagramSocket(5001);
-        	byte[] receiveData = new byte[1000];
-        	
-        	while(true) {
-        	DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-        	
-        	serverSocket.receive(receivePacket);
-        	String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
-        	
-        	ack(received);
-        	
-        	}
-        		
+		}
+	};
 
-        }  catch (Exception e){}
-   	 
-    }
-};
-	
+	private static Runnable t3 = new Runnable() {
+		public void run() {
+			try {
 
+				DatagramSocket serverSocket = new DatagramSocket(5001);
+				byte[] receiveData = new byte[1000];
+
+				while (true) {
+					DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+					serverSocket.receive(receivePacket);
+					String received = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+					ack(received);
+
+				}
+
+			} catch (Exception e) {
+			}
+
+		}
+	};
 
 	public static void ack(String recebidoServer) {
-		Random rndNumber= new Random();
+		Random rndNumber = new Random();
 		int a = rndNumber.nextInt(100);
-		if(a<75) {
-		ack[Integer.parseInt(recebidoServer)]=true;
+		if (a < porcentagem) {
+			ack[Integer.parseInt(recebidoServer)] = true;
+			System.out.println("ack"+ Integer.parseInt(recebidoServer));
+			System.out.println(ack[1]);
 		}
-		
-	
+
 	}
-	
-	public static byte[] toByteArray(Pack obj) throws IOException {
-        byte[] bytes = null;
-        ByteArrayOutputStream bos = null;
-        ObjectOutputStream oos = null;
-        try {
-            bos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(bos);
-            oos.writeObject(obj);
-            oos.flush();
-            bytes = bos.toByteArray();
-        } finally {
-            if (oos != null) {
-                oos.close();
-            }
-            if (bos != null) {
-                bos.close();
-            }
+
+	public static byte[] toByteArray(int x, byte aux[]) throws IOException {
+		String header = new String(x +","+ filesize+", ");
+		byte [] bytes = new byte[537];
+		int y=0;
+		while(header.length()<25) {
+			header=header+"a";
+			
+		}
+        byte[] headerData = header.getBytes();
+        while(y<25) {
+            bytes[y] = headerData[y];
+            y++;
         }
-        return bytes;
-    }
+        y=0;
+       while(y<512) {
+            bytes[25 + y] = aux[y];
+            y++;
+        }
+		return bytes;
+	}
+
 	public static byte[][] thedivision(byte[] a){
 		int y=0;
-		byte[][] datas = new byte[a.length/512][512];
+		byte[][] datas = new byte[(a.length/512)+1][512];
+		System.out.println("division");
 		
-		while(y<a.length/512) {
+		while(y<(a.length/512)+1) {
 		int x=0;
-		while(x<512) {
+		while(y*512+x<filesize && x<512) {
+			
 			datas[y][x]=a[y*512+x];
+			//System.out.println(y*512+x +": "+datas[y][x]);
 			x++;
 		}
 		y++;
 	}
 	return datas;	
-	}
-
-}
+	}}
