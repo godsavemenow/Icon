@@ -12,15 +12,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
-public class server {
+public class Server {
 
 public static byte [] header;
 public static int seqn;
-public static boolean []check= new boolean[1000]; 
+public static boolean []check= new boolean[1000000]; 
 public static int y=0;
 public static void main(String[] args) throws IOException  {
 	
-	byte [] arquivo = new byte[10000];
+	byte [] arquivo = new byte[215349947];
 	DatagramSocket serverSocket = new DatagramSocket(5000);
 	byte[] receiveData = new byte[537];
 	byte[] sendData;
@@ -39,7 +39,7 @@ public static void main(String[] args) throws IOException  {
 	header(receivePacket.getData());
 	String [] cabecalho=received.split(",");
 	
-	
+	if(Integer.parseInt(cabecalho[0])%100==0) {System.out.println(cabecalho[0]);}
 	sendData = (cabecalho[0]).getBytes();
 	clientIP = receivePacket.getAddress();
 	DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientIP, 5001);
@@ -71,7 +71,7 @@ static void print(byte[] file) {
 	while(re<file.length) {
 		
 		
-		System.out.println(re +": "+file[re]);
+		//System.out.println(re +": "+file[re]);
 		re++;
 	}
 	
@@ -93,13 +93,13 @@ static void fileconvert(int seqn, byte [] file) throws IOException {
 	boolean a=true;
 	while(x<seqn) {
 	a = a & check[x];	
-	System.out.println(check[x]);
+	//System.out.println(check[x]);
 	x++;
 	}
 	
 	if(a) {
 		print(file);
-		try (FileOutputStream stream = new FileOutputStream("C:\\Users\\Young Luke\\Desktop\\Nova pasta\\teste.rar")) {
+		try (FileOutputStream stream = new FileOutputStream("D:\\Users\\vss2\\Documents\\arquivoGerado.zip")) {
 		    stream.write(file);
 		}
 	}
@@ -121,7 +121,10 @@ public static void header(byte[]areceived) {
 public static byte[] data(byte[]aareceived, int seq, int filesize, byte[]arq) {
 	byte[] temps=new byte[filesize];
 	
-
+	if(seq==4) {
+		//System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	}
+	
 	
 	int x = 0;
 	
